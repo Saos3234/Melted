@@ -1,2 +1,1465 @@
-# Melted
-Messanger Melted, by Covr3
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Melted Messenger</title>
+    
+    <!-- PWA мета-теги -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Melted">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0088cc">
+    <meta name="msapplication-TileColor" content="#0088cc">
+    
+    <!-- Иконки для PWA -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Melted%20Messenger%22%2C%22short_name%22%3A%22Melted%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22theme_color%22%3A%22%230088cc%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%94%A5%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0088cc;
+            --secondary-color: #00a884;
+            --bg-color: #ffffff;
+            --sidebar-bg: #f0f2f5;
+            --text-color: #000000;
+            --text-secondary: #667781;
+            --border-color: #e9edef;
+            --message-bg: #ffffff;
+            --own-message-bg: #d9fdd3;
+            --hover-color: #f5f6f6;
+            --online-color: #00a884;
+            --offline-color: #8696a0;
+            --error-color: #ff3b30;
+            --success-color: #4cd964;
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #0088cc;
+            --secondary-color: #00a884;
+            --bg-color: #0b141a;
+            --sidebar-bg: #202c33;
+            --text-color: #e9edef;
+            --text-secondary: #8696a0;
+            --border-color: #303d45;
+            --message-bg: #202c33;
+            --own-message-bg: #005c4b;
+            --hover-color: #2a3942;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            height: 100vh;
+            overflow: hidden;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        /* iOS специфичные стили */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
+            }
+        }
+
+        /* Экран загрузки */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Основной контейнер */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: var(--bg-color);
+        }
+
+        /* Боковая панель */
+        .sidebar {
+            width: 30%;
+            min-width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 10px 16px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-top: calc(10px + var(--safe-area-inset-top));
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+            cursor: pointer;
+            position: relative;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--online-color);
+            border: 2px solid var(--sidebar-bg);
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
+        .search-container {
+            padding: 8px 16px;
+            background-color: var(--sidebar-bg);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 16px;
+            background-color: var(--bg-color);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 16px; /* Убирает увеличение в iOS */
+        }
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .chat-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            position: relative;
+            -webkit-touch-callout: none;
+        }
+
+        .chat-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .chat-item.active {
+            background-color: var(--hover-color);
+        }
+
+        .chat-avatar {
+            width: 49px;
+            height: 49px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+            position: relative;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .chat-info {
+            flex: 1;
+        }
+
+        .chat-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .chat-username {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+
+        .chat-last-message {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Область чата */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.03"><path fill="%230088cc" d="M50 0L100 50L50 100L0 50Z"/></svg>');
+        }
+
+        .chat-header {
+            padding: 10px 16px;
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: calc(10px + var(--safe-area-inset-top));
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .message {
+            max-width: 65%;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            position: relative;
+            animation: messageAppear 0.3s ease;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        @keyframes messageAppear {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.incoming {
+            align-self: flex-start;
+            background-color: var(--message-bg);
+            border-top-left-radius: 0;
+        }
+
+        .message.outgoing {
+            align-self: flex-end;
+            background-color: var(--own-message-bg);
+            border-top-right-radius: 0;
+        }
+
+        .message-sender {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .message-input-container {
+            padding: 16px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            align-items: center;
+            padding-bottom: calc(16px + var(--safe-area-inset-bottom));
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 24px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0 8px;
+            font-size: 16px; /* Убирает увеличение в iOS */
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 50px;
+            padding: 20px;
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: auto;
+        }
+
+        .add-contact-btn {
+            position: fixed;
+            bottom: calc(20px + var(--safe-area-inset-bottom));
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: #0077b3;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .notification {
+            position: fixed;
+            top: calc(20px + var(--safe-area-inset-top));
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background-color: var(--success-color);
+            color: white;
+            z-index: 3000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background-color: var(--error-color);
+        }
+
+        /* Адаптивность для iOS */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 100;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .chat-area {
+                width: 100%;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .add-contact-btn {
+                bottom: calc(80px + var(--safe-area-inset-bottom));
+                right: 20px;
+            }
+        }
+
+        .back-button {
+            display: none;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                display: block;
+            }
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            transition: right 0.3s ease;
+            z-index: 1500;
+            overflow-y: auto;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+
+        .settings-panel.active {
+            right: 0;
+        }
+
+        .settings-header {
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding-top: calc(20px + var(--safe-area-inset-top));
+        }
+
+        .settings-content {
+            padding: 20px;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+
+        .theme-options, .language-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .theme-option, .language-option {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+
+        .theme-option.active, .language-option.active {
+            border-color: var(--primary-color);
+            background-color: rgba(0, 136, 204, 0.1);
+        }
+
+        /* Улучшения для iOS */
+        input, textarea, select {
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        /* Убирает подсветку при тапе на iOS */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Улучшает скролл на iOS */
+        .scrollable {
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body>
+    <!-- Экран загрузки -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <h1>Melted Messenger</h1>
+        <p>Загрузка...</p>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Модальное окно регистрации -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">Melted</div>
+                <div>Мессенджер для реального общения</div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ваш юзернейм</label>
+                <input type="text" class="search-box" id="usernameInput" placeholder="username" style="border-radius: 8px;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Будет использоваться для вашей идентификации (@username)</div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Номер телефона</label>
+                <div style="display: flex;">
+                    <select class="search-box" id="countryCode" style="width: 80px; margin-right: 10px; border-radius: 8px;">
+                        <option value="+7">+7</option>
+                        <option value="+1">+1</option>
+                        <option value="+44">+44</option>
+                    </select>
+                    <input type="tel" class="search-box" id="phoneInput" placeholder="Номер телефона" style="border-radius: 8px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ваше имя</label>
+                <input type="text" class="search-box" id="displayNameInput" placeholder="Ваше имя" style="border-radius: 8px;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Как вас будут видеть другие пользователи</div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="registerUser()">Зарегистрироваться</button>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary);">
+                Нажимая "Зарегистрироваться", вы соглашаетесь с условиями использования
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления контакта -->
+    <div class="modal" id="addContactModal">
+        <div class="modal-content">
+            <div style="font-size: 1.2rem; font-weight: 500; margin-bottom: 20px;">Добавить контакт</div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Юзернейм пользователя</label>
+                <input type="text" class="search-box" id="contactUsernameInput" placeholder="username" style="border-radius: 8px;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Введите юзернейм без @</div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="addContact()" style="margin-bottom: 10px;">Найти и добавить</button>
+            <button class="btn btn-secondary" onclick="closeAddContactModal()" style="width: 100%;">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Основной интерфейс -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Боковая панель -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar" style="position: relative;">
+                        <span id="userAvatarText">U</span>
+                        <div class="status-indicator" id="userStatusIndicator"></div>
+                    </div>
+                    <div>
+                        <div id="userName">Пользователь</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);" id="userStatus">в сети</div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fas fa-user-plus" style="margin-right: 15px; cursor: pointer;" onclick="showAddContactModal()" title="Добавить контакт"></i>
+                    <i class="fas fa-cog" style="cursor: pointer;" onclick="showSettings()" title="Настройки"></i>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="Поиск по юзернейму или имени" id="searchInput" oninput="searchContacts()">
+            </div>
+            
+            <div class="chats-list" id="chatsList">
+                <div class="empty-state" id="emptyChatsState">
+                    <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <div style="font-size: 1.1rem; margin-bottom: 10px;">У вас пока нет контактов</div>
+                    <div>Добавьте друзей по юзернейму, чтобы начать общение</div>
+                    <button class="btn btn-primary" onclick="showAddContactModal()" style="margin-top: 15px; width: auto; display: inline-block; padding: 8px 16px;">
+                        Добавить контакт
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Область чата -->
+        <div class="chat-area" id="chatArea">
+            <div class="chat-header">
+                <div class="back-button" onclick="toggleSidebar()">
+                    <i class="fas fa-arrow-left"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="chatUserAvatar" style="position: relative;">
+                        <span id="chatUserAvatarText">?</span>
+                        <div class="status-indicator" id="chatUserStatusIndicator" style="background: var(--offline-color);"></div>
+                    </div>
+                    <div>
+                        <div id="chatUserName">Выберите чат</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);" id="chatUserStatus">чтобы начать общение</div>
+                    </div>
+                </div>
+                <div id="chatActions" style="display: none;">
+                    <i class="fas fa-phone" style="margin-right: 15px; cursor: pointer;" title="Аудиозвонок"></i>
+                    <i class="fas fa-video" style="cursor: pointer;" title="Видеозвонок"></i>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <div style="font-size: 1.1rem; margin-bottom: 10px;">Выберите чат для общения</div>
+                    <div>Начните общение с друзьями, используя их юзернеймы</div>
+                </div>
+            </div>
+            
+            <div class="message-input-container" id="messageInputContainer" style="display: none;">
+                <i class="fas fa-paperclip" style="cursor: pointer; margin: 0 10px;" title="Прикрепить файл"></i>
+                <input type="text" class="message-input" placeholder="Введите сообщение..." id="messageInput" onkeypress="handleMessageKeypress(event)">
+                <button style="background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin-left: 10px;" onclick="sendMessage()" title="Отправить сообщение">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель настроек -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <i class="fas fa-arrow-left" style="margin-right: 15px; cursor: pointer;" onclick="toggleSettings()"></i>
+            <h3>Настройки</h3>
+        </div>
+        
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="settings-title">Внешний вид</div>
+                <div class="theme-options">
+                    <div class="theme-option active" data-theme="light" onclick="changeTheme('light')">
+                        <i class="fas fa-sun" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                        <div>Светлая</div>
+                    </div>
+                    <div class="theme-option" data-theme="dark" onclick="changeTheme('dark')">
+                        <i class="fas fa-moon" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                        <div>Тёмная</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <div class="settings-title">Язык</div>
+                <div class="language-options">
+                    <div class="language-option active" data-lang="ru" onclick="changeLanguage('ru')">
+                        <div>Русский</div>
+                    </div>
+                    <div class="language-option" data-lang="en" onclick="changeLanguage('en')">
+                        <div>English</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-title">PWA</div>
+                <button class="btn btn-primary" onclick="installPWA()" id="installButton" style="margin-bottom: 10px; display: none;">
+                    Установить приложение
+                </button>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                    Установите приложение для работы в оффлайн-режиме и быстрого доступа
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <div class="settings-title">Учетная запись</div>
+                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="editProfile()">
+                    Редактировать профиль
+                </button>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="logout()">
+                    Выйти
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка добавления контакта -->
+    <button class="add-contact-btn" onclick="showAddContactModal()" id="addContactBtn" style="display: none;">
+        <i class="fas fa-user-plus"></i>
+    </button>
+
+    <script>
+        // =============================================
+        // 📋 ОСНОВНОЙ ФАЙЛ: scripts.js
+        // =============================================
+
+        // 🔐 ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И ХРАНИЛИЩЕ
+        // =============================================
+        let currentUser = null;
+        let currentChat = null;
+        let contacts = [];
+        let allUsers = {};
+        let deferredPrompt = null;
+
+        // 🚀 ФУНКЦИЯ: Инициализация приложения при загрузке
+        // =============================================
+        function initializeApp() {
+            console.log("🚀 Инициализация Melted Messenger...");
+            
+            // Проверяем, есть ли сохраненный пользователь
+            const savedUser = localStorage.getItem('melted_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                loadAppData();
+                showMainInterface();
+            } else {
+                // Показываем окно регистрации
+                showAuthModal();
+            }
+            
+            // Инициализируем тестовых пользователей
+            initializeTestUsers();
+            
+            // Загружаем сохраненные настройки
+            loadSettings();
+            
+            // Инициализируем PWA
+            initializePWA();
+            
+            // Скрываем экран загрузки через 2 секунды
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 2000);
+        }
+
+        // 📲 ФУНКЦИЯ: Инициализация PWA
+        // =============================================
+        function initializePWA() {
+            // Обработчик для установки PWA
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('installButton').style.display = 'block';
+            });
+
+            // Проверяем, установлено ли приложение
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log("Приложение запущено в standalone режиме");
+            }
+        }
+
+        // 📲 ФУНКЦИЯ: Установка PWA
+        // =============================================
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Пользователь принял установку');
+                    } else {
+                        console.log('Пользователь отклонил установку');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installButton').style.display = 'none';
+                });
+            }
+        }
+
+        // 👥 ФУНКЦИЯ: Создание тестовых пользователей
+        // =============================================
+        function initializeTestUsers() {
+            console.log("👥 Инициализация тестовых пользователей...");
+            
+            const existingUsers = JSON.parse(localStorage.getItem('melted_allUsers') || '{}');
+            
+            if (Object.keys(existingUsers).length === 0) {
+                allUsers = {
+                    'alexey': {
+                        id: 2,
+                        username: 'alexey',
+                        name: 'Алексей',
+                        phone: '+79161234567',
+                        avatar: 'А',
+                        status: 'online',
+                        lastSeen: 'только что'
+                    },
+                    'maria': {
+                        id: 3,
+                        username: 'maria', 
+                        name: 'Мария',
+                        phone: '+79031234568',
+                        avatar: 'М',
+                        status: 'online',
+                        lastSeen: '5 мин назад'
+                    },
+                    'dmitry': {
+                        id: 4,
+                        username: 'dmitry',
+                        name: 'Дмитрий',
+                        phone: '+79261234569',
+                        avatar: 'Д',
+                        status: 'offline',
+                        lastSeen: '2 часа назад'
+                    }
+                };
+                
+                localStorage.setItem('melted_allUsers', JSON.stringify(allUsers));
+            } else {
+                allUsers = existingUsers;
+            }
+        }
+
+        // 📝 ФУНКЦИЯ: Регистрация нового пользователя
+        // =============================================
+        function registerUser() {
+            console.log("📝 Начало регистрации пользователя...");
+            
+            const usernameInput = document.getElementById('usernameInput');
+            const phoneInput = document.getElementById('phoneInput');
+            const displayNameInput = document.getElementById('displayNameInput');
+            const countryCode = document.getElementById('countryCode').value;
+            
+            const username = usernameInput.value.trim().toLowerCase();
+            const phone = phoneInput.value.trim();
+            const displayName = displayNameInput.value.trim() || username;
+            
+            // 🔍 ВАЛИДАЦИЯ ДАННЫХ
+            if (!username) {
+                showNotification('❌ Пожалуйста, введите юзернейм', 'error');
+                return;
+            }
+            
+            if (!phone || phone.length < 10) {
+                showNotification('❌ Пожалуйста, введите корректный номер телефона (10 цифр)', 'error');
+                return;
+            }
+            
+            if (!username.match(/^[a-zA-Z0-9_]+$/)) {
+                showNotification('❌ Юзернейм может содержать только буквы, цифры и нижнее подчеркивание', 'error');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showNotification('❌ Юзернейм должен содержать минимум 3 символа', 'error');
+                return;
+            }
+            
+            // 🔒 ПРОВЕРКА ЗАНЯТОСТИ ЮЗЕРНЕЙМА
+            const existingUsers = JSON.parse(localStorage.getItem('melted_allUsers') || '{}');
+            if (existingUsers[username]) {
+                showNotification('❌ Этот юзернейм уже занят. Выберите другой.', 'error');
+                return;
+            }
+            
+            // 👤 СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ
+            currentUser = {
+                id: Date.now(),
+                username: username,
+                name: displayName,
+                phone: countryCode + phone,
+                avatar: displayName.charAt(0).toUpperCase(),
+                status: 'online',
+                lastSeen: 'только что',
+                registeredAt: new Date().toISOString()
+            };
+            
+            // 💾 СОХРАНЕНИЕ В БАЗЕ ДАННЫХ
+            existingUsers[username] = currentUser;
+            localStorage.setItem('melted_allUsers', JSON.stringify(existingUsers));
+            localStorage.setItem('melted_currentUser', JSON.stringify(currentUser));
+            
+            console.log("✅ Пользователь успешно зарегистрирован:", currentUser);
+            showNotification('✅ Регистрация прошла успешно!');
+            
+            // 🎉 ПОКАЗ ОСНОВНОГО ИНТЕРФЕЙСА
+            hideAuthModal();
+            loadAppData();
+            showMainInterface();
+        }
+
+        // 🔐 ФУНКЦИЯ: Загрузка данных приложения после авторизации
+        // =============================================
+        function loadAppData() {
+            console.log("🔐 Загрузка данных приложения...");
+            
+            const savedContacts = localStorage.getItem(`melted_contacts_${currentUser.username}`);
+            if (savedContacts) {
+                contacts = JSON.parse(savedContacts);
+            }
+            
+            const savedAllUsers = localStorage.getItem('melted_allUsers');
+            if (savedAllUsers) {
+                allUsers = JSON.parse(savedAllUsers);
+            }
+            
+            updateUserInterface();
+            updateContactsList();
+        }
+
+        // 🖥️ ФУНКЦИЯ: Показать основной интерфейс мессенджера
+        // =============================================
+        function showMainInterface() {
+            console.log("🖥️ Показ основного интерфейса...");
+            document.getElementById('appContainer').style.display = 'flex';
+            document.getElementById('addContactBtn').style.display = 'block';
+            document.getElementById('loadingScreen').style.display = 'none';
+        }
+
+        // 👤 ФУНКЦИЯ: Обновление интерфейса пользователя
+        // =============================================
+        function updateUserInterface() {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatarText').textContent = currentUser.avatar;
+            document.getElementById('userStatus').textContent = 'в сети';
+            document.getElementById('userStatusIndicator').style.backgroundColor = 'var(--online-color)';
+        }
+
+        // 📞 ФУНКЦИЯ: Открытие модального окна добавления контакта
+        // =============================================
+        function showAddContactModal() {
+            console.log("📞 Открытие модального окна добавления контакта...");
+            document.getElementById('addContactModal').style.display = 'flex';
+            document.getElementById('contactUsernameInput').focus();
+        }
+
+        // ❌ ФУНКЦИЯ: Закрытие модального окна добавления контакта
+        // =============================================
+        function closeAddContactModal() {
+            document.getElementById('addContactModal').style.display = 'none';
+            document.getElementById('contactUsernameInput').value = '';
+        }
+
+        // ➕ ФУНКЦИЯ: Добавление нового контакта по юзернейму
+        // =============================================
+        function addContact() {
+            const usernameInput = document.getElementById('contactUsernameInput');
+            const username = usernameInput.value.trim().toLowerCase();
+            
+            console.log("➕ Попытка добавления контакта:", username);
+            
+            // 🔍 ВАЛИДАЦИЯ ВВОДА
+            if (!username) {
+                showNotification('❌ Пожалуйста, введите юзернейм', 'error');
+                return;
+            }
+            
+            // 🚫 ПРОВЕРКА: Нельзя добавить себя
+            if (username === currentUser.username) {
+                showNotification('❌ Вы не можете добавить себя в контакты', 'error');
+                return;
+            }
+            
+            // 🔎 ПОИСК ПОЛЬЗОВАТЕЛЯ В СИСТЕМЕ
+            const user = allUsers[username];
+            if (!user) {
+                showNotification('❌ Пользователь с таким юзернеймом не найден', 'error');
+                return;
+            }
+            
+            // ✅ ПРОВЕРКА: Контакт уже добавлен
+            if (contacts.some(contact => contact.username === username)) {
+                showNotification('❌ Этот пользователь уже у вас в контактах', 'error');
+                return;
+            }
+            
+            // ➕ ДОБАВЛЕНИЕ КОНТАКТА
+            contacts.push({
+                username: username,
+                addedAt: new Date().toISOString()
+            });
+            
+            // 💾 СОХРАНЕНИЕ КОНТАКТОВ
+            localStorage.setItem(`melted_contacts_${currentUser.username}`, JSON.stringify(contacts));
+            
+            // 🔄 ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+            updateContactsList();
+            closeAddContactModal();
+            
+            console.log("✅ Контакт успешно добавлен:", user);
+            showNotification(`✅ Пользователь @${username} успешно добавлен в контакты!`);
+        }
+
+        // 📋 ФУНКЦИЯ: Обновление списка контактов в интерфейсе
+        // =============================================
+        function updateContactsList() {
+            console.log("📋 Обновление списка контактов...");
+            
+            const chatsList = document.getElementById('chatsList');
+            const emptyState = document.getElementById('emptyChatsState');
+            
+            // 📭 ЕСЛИ КОНТАКТОВ НЕТ - ПОКАЗЫВАЕМ ПУСТОЕ СОСТОЯНИЕ
+            if (contacts.length === 0) {
+                emptyState.style.display = 'block';
+                chatsList.innerHTML = '';
+                chatsList.appendChild(emptyState);
+                return;
+            }
+            
+            // 📞 ЕСЛИ КОНТАКТЫ ЕСТЬ - ОТОБРАЖАЕМ ИХ
+            emptyState.style.display = 'none';
+            chatsList.innerHTML = '';
+            
+            contacts.forEach(contact => {
+                const user = allUsers[contact.username];
+                if (!user) return;
+                
+                const chatElement = document.createElement('div');
+                chatElement.className = 'chat-item';
+                chatElement.onclick = () => openChat(user);
+                
+                // Получаем последнее сообщение для этого чата
+                const chatId = getChatId(currentUser.username, user.username);
+                const messages = JSON.parse(localStorage.getItem(`melted_messages_${chatId}`)) || [];
+                const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+                
+                chatElement.innerHTML = `
+                    <div class="chat-avatar">
+                        <span>${user.avatar}</span>
+                        <div class="status-indicator" style="background: ${user.status === 'online' ? 'var(--online-color)' : 'var(--offline-color)'};"></div>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${user.name}</div>
+                        <div class="chat-username">@${user.username}</div>
+                        <div class="chat-last-message">${lastMessage ? lastMessage.text : 'Нажмите чтобы начать общение'}</div>
+                    </div>
+                    <div class="chat-meta">
+                        <div>${user.status === 'online' ? 'online' : user.lastSeen}</div>
+                        ${lastMessage ? `<div style="margin-top: 5px;">${lastMessage.timestamp}</div>` : ''}
+                    </div>
+                `;
+                
+                chatsList.appendChild(chatElement);
+            });
+        }
+
+        // 💬 ФУНКЦИЯ: Открытие чата с выбранным пользователем
+        // =============================================
+        function openChat(user) {
+            console.log("💬 Открытие чата с пользователем:", user.username);
+            
+            currentChat = user;
+            
+            // ✏️ ОБНОВЛЕНИЕ ЗАГОЛОВКА ЧАТА
+            document.getElementById('chatUserName').textContent = user.name;
+            document.getElementById('chatUserAvatarText').textContent = user.avatar;
+            document.getElementById('chatUserStatus').textContent = user.status === 'online' ? 'в сети' : `был(а) ${user.lastSeen}`;
+            document.getElementById('chatUserStatusIndicator').style.backgroundColor = user.status === 'online' ? 'var(--online-color)' : 'var(--offline-color)';
+            
+            // Показываем действия для чата
+            document.getElementById('chatActions').style.display = 'block';
+            
+            // ⌨️ ПОКАЗ ПОЛЯ ВВОДА СООБЩЕНИЙ
+            document.getElementById('messageInputContainer').style.display = 'flex';
+            
+            // 📨 ЗАГРУЗКА СООБЩЕНИЙ
+            loadMessages(user.username);
+            
+            // 📱 АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        }
+
+        // 📨 ФУНКЦИЯ: Загрузка сообщений для выбранного чата
+        // =============================================
+        function loadMessages(contactUsername) {
+            console.log("📨 Загрузка сообщений для чата с:", contactUsername);
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            // 🔑 ПОЛУЧЕНИЕ УНИКАЛЬНОГО ID ЧАТА
+            const chatId = getChatId(currentUser.username, contactUsername);
+            const messages = JSON.parse(localStorage.getItem(`melted_messages_${chatId}`)) || [];
+            
+            // 📭 ЕСЛИ СООБЩЕНИЙ НЕТ - ПОКАЗЫВАЕМ ПУСТОЕ СОСТОЯНИЕ
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comment" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <div style="font-size: 1.1rem; margin-bottom: 10px;">Нет сообщений</div>
+                        <div>Напишите первое сообщение пользователю @${contactUsername}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 📝 ОТОБРАЖЕНИЕ ВСЕХ СООБЩЕНИЙ
+            messagesContainer.innerHTML = '';
+            messages.forEach(message => {
+                addMessageToChat(message, message.sender === currentUser.username);
+            });
+            
+            // 🔽 ПРОКРУТКА ВНИЗ К ПОСЛЕДНЕМУ СООБЩЕНИЮ
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ✉️ ФУНКЦИЯ: Отправка нового сообщения
+        // =============================================
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            // 🔍 ПРОВЕРКА: Есть ли текст и открыт ли чат
+            if (!text || !currentChat) {
+                console.log("❌ Нельзя отправить пустое сообщение");
+                return;
+            }
+            
+            console.log("✉️ Отправка сообщения:", text);
+            
+            // 📝 СОЗДАНИЕ ОБЪЕКТА СООБЩЕНИЯ
+            const message = {
+                id: Date.now(),
+                text: text,
+                sender: currentUser.username,
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                isRead: false,
+                sentAt: new Date().toISOString()
+            };
+            
+            // 💾 СОХРАНЕНИЕ СООБЩЕНИЯ В БАЗЕ
+            const chatId = getChatId(currentUser.username, currentChat.username);
+            const messages = JSON.parse(localStorage.getItem(`melted_messages_${chatId}`)) || [];
+            messages.push(message);
+            localStorage.setItem(`melted_messages_${chatId}`, JSON.stringify(messages));
+            
+            // 🖥️ ДОБАВЛЕНИЕ СООБЩЕНИЯ В ИНТЕРФЕЙС
+            addMessageToChat(message, true);
+            input.value = '';
+            
+            // Обновляем список чатов
+            updateContactsList();
+            
+            // 🤖 ИМИТАЦИЯ ОТВЕТА
+            simulateReply(chatId, messages);
+        }
+
+        // 🤖 ФУНКЦИЯ: Имитация ответа от собеседника
+        // =============================================
+        function simulateReply(chatId, messages) {
+            // 70% вероятность ответа
+            if (Math.random() > 0.3) {
+                setTimeout(() => {
+                    const replies = [
+                        "Привет! Как дела?",
+                        "Интересное сообщение!",
+                        "Спасибо за информацию!",
+                        "Давай обсудим это позже",
+                        "Отлично!",
+                        "Я согласен с тобой",
+                        "Расскажи подробнее",
+                        "Хорошо, договорились",
+                        "У меня тоже так",
+                        "Рад это слышать!"
+                    ];
+                    
+                    const replyMessage = {
+                        id: Date.now() + 1,
+                        text: replies[Math.floor(Math.random() * replies.length)],
+                        sender: currentChat.username,
+                        timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                        isRead: false,
+                        sentAt: new Date().toISOString()
+                    };
+                    
+                    messages.push(replyMessage);
+                    localStorage.setItem(`melted_messages_${chatId}`, JSON.stringify(messages));
+                    addMessageToChat(replyMessage, false);
+                    
+                    // Обновляем список чатов
+                    updateContactsList();
+                    
+                    console.log("🤖 Имитация ответа от:", currentChat.username);
+                }, 1000 + Math.random() * 3000);
+            }
+        }
+
+        // 💬 ФУНКЦИЯ: Добавление сообщения в интерфейс чата
+        // =============================================
+        function addMessageToChat(message, isOwn) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            // 🧹 УБИРАЕМ ПУСТОЕ СОСТОЯНИЕ ЕСЛИ ОНО ЕСТЬ
+            if (messagesContainer.querySelector('.empty-state')) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            // 🏗️ СОЗДАЕМ ЭЛЕМЕНТ СООБЩЕНИЯ
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${isOwn ? 'outgoing' : 'incoming'}`;
+            
+            messageElement.innerHTML = `
+                ${!isOwn ? `<div class="message-sender">@${message.sender}</div>` : ''}
+                <div>${message.text}</div>
+                <div class="message-time">${message.timestamp}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            
+            // 🔽 АВТОМАТИЧЕСКАЯ ПРОКРУТКА К НОВОМУ СООБЩЕНИЮ
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ⌨️ ФУНКЦИЯ: Обработка нажатия Enter для отправки сообщения
+        // =============================================
+        function handleMessageKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // 🔑 ФУНКЦИЯ: Генерация уникального ID для чата
+        // =============================================
+        function getChatId(user1, user2) {
+            return [user1, user2].sort().join('_');
+        }
+
+        // 🔍 ФУНКЦИЯ: Поиск контактов
+        // =============================================
+        function searchContacts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            console.log("🔍 Поиск контактов:", searchTerm);
+            
+            const chatItems = document.querySelectorAll('.chat-item');
+            let found = false;
+            
+            chatItems.forEach(item => {
+                const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                const username = item.querySelector('.chat-username').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || username.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                    found = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Показываем/скрываем сообщение о пустом результате
+            const emptyState = document.getElementById('emptyChatsState');
+            if (!found && searchTerm) {
+                if (!emptyState) {
+                    const newEmptyState = document.createElement('div');
+                    newEmptyState.className = 'empty-state';
+                    newEmptyState.innerHTML = `
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <div style="font-size: 1.1rem; margin-bottom: 10px;">Контакты не найдены</div>
+                        <div>Попробуйте изменить запрос</div>
+                    `;
+                    document.getElementById('chatsList').appendChild(newEmptyState);
+                } else {
+                    emptyState.style.display = 'block';
+                }
+            } else if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        // ⚙️ ФУНКЦИЯ: Показать/скрыть настройки
+        // =============================================
+        function showSettings() {
+            document.getElementById('settingsPanel').classList.add('active');
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('active');
+        }
+
+        // 🎨 ФУНКЦИЯ: Смена темы
+        // =============================================
+        function changeTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('melted_theme', theme);
+            
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === theme);
+            });
+            
+            showNotification(`Тема изменена на ${theme === 'light' ? 'светлую' : 'тёмную'}`);
+        }
+
+        // 🌐 ФУНКЦИЯ: Смена языка
+        // =============================================
+        function changeLanguage(lang) {
+            localStorage.setItem('melted_language', lang);
+            
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.lang === lang);
+            });
+            
+            showNotification(`Язык изменен на ${lang === 'ru' ? 'русский' : 'английский'}`);
+        }
+
+        // 👤 ФУНКЦИЯ: Редактирование профиля
+        // =============================================
+        function editProfile() {
+            const newName = prompt('Введите новое имя:', currentUser.name);
+            if (newName && newName.trim() !== '') {
+                currentUser.name = newName.trim();
+                currentUser.avatar = newName.trim().charAt(0).toUpperCase();
+                localStorage.setItem('melted_currentUser', JSON.stringify(currentUser));
+                
+                allUsers[currentUser.username] = currentUser;
+                localStorage.setItem('melted_allUsers', JSON.stringify(allUsers));
+                
+                updateUserInterface();
+                updateContactsList();
+                showNotification('✅ Профиль успешно обновлен!');
+            }
+        }
+
+        // 🚪 ФУНКЦИЯ: Выход из системы
+        // =============================================
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                localStorage.removeItem('melted_currentUser');
+                location.reload();
+            }
+        }
+
+        // 📱 ФУНКЦИЯ: Переключение боковой панели на мобильных
+        // =============================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // ✨ ФУНКЦИЯ: Показать/скрыть модальное окно авторизации
+        // =============================================
+        function hideAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+        }
+
+        // 🔔 ФУНКЦИЯ: Показать уведомление
+        // =============================================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (type === 'error') {
+                notification.classList.add('error');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // ⚙️ ФУНКЦИЯ: Загрузка сохраненных настроек
+        // =============================================
+        function loadSettings() {
+            const savedTheme = localStorage.getItem('melted_theme') || 'light';
+            changeTheme(savedTheme);
+            
+            const savedLang = localStorage.getItem('melted_language') || 'ru';
+            changeLanguage(savedLang);
+        }
+
+        // 🎯 ОБРАБОТЧИКИ СОБЫТИЙ И ЗАПУСК ПРИЛОЖЕНИЯ
+        // =============================================
+
+        // 🚀 ЗАПУСК ПРИЛОЖЕНИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("🎯 Загрузка Melted Messenger...");
+            initializeApp();
+        });
+
+        // 📱 ОБРАБОТКА ИЗМЕНЕНИЯ РАЗМЕРА ОКНА
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        });
+
+        // ⌨️ ОБРАБОТКА НАЖАТИЯ ENTER В ПОЛЕ ЮЗЕРНЕЙМА ПРИ РЕГИСТРАЦИИ
+        document.getElementById('usernameInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') registerUser();
+        });
+
+        // ⌨️ ОБРАБОТКА НАЖАТИЯ ENTER В ПОЛЕ ДОБАВЛЕНИЯ КОНТАКТА
+        document.getElementById('contactUsernameInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addContact();
+        });
+
+        console.log("✅ Все JavaScript функции загружены и готовы к работе!");
+    </script>
+</body>
+</html>
